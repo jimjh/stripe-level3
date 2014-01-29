@@ -2,6 +2,7 @@ package com.stripe.ctf.instantcodesearch
 
 import java.io._
 import java.nio.file._
+import scala.collection.mutable;
 
 import com.twitter.concurrent.Broker
 
@@ -14,12 +15,23 @@ class Searcher(indexPath : String)  {
   val root = FileSystems.getDefault().getPath(index.path)
 
   def search(needle : String, b : Broker[SearchResult]) = {
-    for (path <- index.files) {
-      for (m <- tryPath(path, needle)) {
-        b !! m
+    val regx   = "[^a-zA-Z]"
+    val tokens = needle.split(regx).toList
+    val founds = tokens.map(index.map getOrElse (_, mutable.HashSet[(String, Int)]()))
+    founds match {
+      case head::tail => {
+        val set = (head /: tail)(_&_)
+        set.foreach { case (path, num) => b !! new Match(path, num) }
       }
+      case nil =>
     }
-
+    // TODO find lines with these words in the same order?
+    // TODO parallel?
+    //for (path <- index.files) {
+    //  for (m <- tryPath(path, needle)) {
+    //    b !! m
+    //  }
+    //}
     b !! new Done()
   }
 

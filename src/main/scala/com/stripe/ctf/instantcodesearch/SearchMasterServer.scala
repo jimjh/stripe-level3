@@ -53,6 +53,7 @@ class SearchMasterServer(port: Int, id: Int) extends AbstractSearchServer(port, 
     }
   }
 
+  // TODO split up the work
   override def index(path: String) = {
     System.err.println(
       "[master] Requesting " + NumNodes + " nodes to index path: " + path
@@ -62,6 +63,7 @@ class SearchMasterServer(port: Int, id: Int) extends AbstractSearchServer(port, 
     responses.map {_ => successResponse()}
   }
 
+  // TODO split up the work
   override def query(q: String) = {
     val responses = clients.map {client => client.query(q)}
     responses(0)
