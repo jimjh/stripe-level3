@@ -16,7 +16,7 @@ class Searcher(indexer: Indexer, indexPath: String, val id: Int)  {
 
   def search(needle: String, b: Broker[SearchResult]) = {
     val regx   = "[^a-zA-Z]"
-    val tokens = needle.split(regx)//.map(_.toLowerCase)
+    val tokens = needle.split(regx)
     val founds = tokens.toList.map(find)
     founds match {
       case head::tail => {
@@ -30,7 +30,6 @@ class Searcher(indexer: Indexer, indexPath: String, val id: Int)  {
 
   def find(token: String) = {
     val keys = index.tree.find(token)
-    System.err.println("[node #" + id + "] found: " + keys)
     val vals = keys.map { key => index.map getOrElse (key, mutable.HashSet[(String, Int)]()) }
     (mutable.HashSet[(String, Int)]() /: vals)(_|_)
   }
