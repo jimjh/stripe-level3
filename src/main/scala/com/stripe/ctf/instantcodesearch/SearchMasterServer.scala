@@ -58,6 +58,7 @@ class SearchMasterServer(port: Int, id: Int) extends AbstractSearchServer(port, 
     System.err.println(
       "[master] Requesting " + NumNodes + " nodes to index path: " + path
     )
+    val root = new File(path)
 
     val responses = Future.collect(clients.map {client => client.index(path)})
     responses.map {_ => successResponse()}

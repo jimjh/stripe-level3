@@ -23,6 +23,7 @@ class Index(repoPath: String) extends Serializable {
     text.split("\n").view.zipWithIndex.foreach { case (line, num) =>
       tokenize(line).map(addToken(file, num + 1, _))
     }
+    // TODO build a suffix tree to support substring search
   }
 
   def addToken(file: String, num: Int, token: String) {
@@ -30,7 +31,7 @@ class Index(repoPath: String) extends Serializable {
     map(token) = set + ((file, num))
   }
 
-  def tokenize(line: String) = line.trim().split("[^a-zA-Z]").map(_.toLowerCase)
+  def tokenize(line: String) = line.trim().split("[^a-zA-Z]")//.map(_.toLowerCase)
 
   def write(out: File) {
     val stream = new FileOutputStream(out)

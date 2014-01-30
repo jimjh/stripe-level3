@@ -14,10 +14,10 @@ class Searcher(indexPath : String)  {
   val index : Index = readIndex(indexPath)
   val root = FileSystems.getDefault().getPath(index.path)
 
-  def search(needle : String, b : Broker[SearchResult]) = {
+  def search(needle: String, b: Broker[SearchResult]) = {
     val regx   = "[^a-zA-Z]"
-    val tokens = needle.split(regx).toList
-    val founds = tokens.map(index.map getOrElse (_, mutable.HashSet[(String, Int)]()))
+    val tokens = needle.split(regx)//.map(_.toLowerCase)
+    val founds = tokens.toList.map(find)
     founds match {
       case head::tail => {
         val set = (head /: tail)(_&_)
@@ -26,13 +26,18 @@ class Searcher(indexPath : String)  {
       case nil =>
     }
     // TODO find lines with these words in the same order?
-    // TODO parallel?
+    // TODO parallelism?
     //for (path <- index.files) {
     //  for (m <- tryPath(path, needle)) {
     //    b !! m
     //  }
     //}
     b !! new Done()
+  }
+
+  def find(token: String) = {
+    val submap = index.map.filterKeys(_.contains(token))
+    (mutable.HashSet[(String, Int)]() /: submap.values)(_|_)
   }
 
   def tryPath(path: String, needle: String) : Iterable[SearchResult] = {
