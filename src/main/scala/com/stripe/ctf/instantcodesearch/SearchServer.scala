@@ -7,7 +7,7 @@ import org.jboss.netty.handler.codec.http.{HttpResponse, HttpResponseStatus}
 class SearchServer(port : Int, id : Int) extends AbstractSearchServer(port, id) {
   val IndexPath = "instantcodesearch-" + id + ".index"
   case class Query(q : String, broker : Broker[SearchResult])
-  lazy val searcher = new Searcher(IndexPath)
+  lazy val searcher = new Searcher(IndexPath, id)
   @volatile var indexed = false
 
   override def healthcheck() = {

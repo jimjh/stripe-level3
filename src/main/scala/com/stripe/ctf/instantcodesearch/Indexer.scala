@@ -25,7 +25,7 @@ class Indexer(indexPath: String, i: Int) {
           return FileVisitResult.CONTINUE
         if (Files.size(file) > (1 << 20))
           return FileVisitResult.CONTINUE
-        if ((file.getFileName().toString().hashCode() % 3) + 1 != id)
+        if (Math.abs(file.getFileName().toString().hashCode() % 3) + 1 != id)
           return FileVisitResult.CONTINUE
         val bytes = Files.readAllBytes(file)
         if (Arrays.asList(bytes).indexOf(0) > 0)

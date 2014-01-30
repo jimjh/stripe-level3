@@ -7,7 +7,8 @@ import scala.collection.mutable;
 // TODO allow parallel indexing
 class Index(repoPath: String) extends Serializable {
 
-  val map = new mutable.HashMap[String, mutable.HashSet[(String, Int)]]
+  val map  = new mutable.HashMap[String, mutable.HashSet[(String, Int)]]
+  val tree = new SuffixTree()
 
   def path() = repoPath
 
@@ -23,10 +24,11 @@ class Index(repoPath: String) extends Serializable {
     text.split("\n").view.zipWithIndex.foreach { case (line, num) =>
       tokenize(line).map(addToken(file, num + 1, _))
     }
-    // TODO build a suffix tree to support substring search
   }
 
   def addToken(file: String, num: Int, token: String) {
+    if (!(map contains token))
+      tree.add(token)
     val set = map getOrElse (token, mutable.HashSet[(String, Int)]())
     map(token) = set + ((file, num))
   }
