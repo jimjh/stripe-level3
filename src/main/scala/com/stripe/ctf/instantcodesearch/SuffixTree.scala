@@ -50,11 +50,9 @@ class SuffixTree extends Serializable {
     (nlist /: node.children) { (acc, n) => flatten(n, acc) }
   }
 
-  class Node(v: Char, s: Option[List[String]]) extends Serializable {
+  class Node(val value: Char, var src: Option[List[String]]) extends Serializable {
     def this(v: Char) = this(v, None)
     var children = List[Node]()
-    val value    = v
-    var src      = s
     def add(child: Node) = {
       this.children = child::children
       child

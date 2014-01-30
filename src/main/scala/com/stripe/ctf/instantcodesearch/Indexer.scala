@@ -6,10 +6,9 @@ import java.nio.file._
 import java.nio.charset._
 import java.nio.file.attribute.BasicFileAttributes
 
-class Indexer(indexPath: String, i: Int) {
+class Indexer(indexPath: String, val id: Int) {
   val root  = FileSystems.getDefault().getPath(indexPath)
   val idx = new Index(root.toAbsolutePath.toString)
-  val id  = i
 
   def index() : Indexer = {
     Files.walkFileTree(root, new SimpleFileVisitor[Path] {
