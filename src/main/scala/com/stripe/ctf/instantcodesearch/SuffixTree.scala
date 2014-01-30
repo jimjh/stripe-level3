@@ -4,7 +4,7 @@ import scala.collection.mutable.Map;
 
 class SuffixTree extends Serializable {
 
-  var root = new Node('^', None)
+  var root = new Node('^')
 
   def add(s: String) {
     for (i <- s.length to 1 by -1) {
@@ -42,28 +42,20 @@ class SuffixTree extends Serializable {
     }
   }
 
-  def flatten(node: Node) : List[String] = flatten(node, List[String]())
-
-  def flatten(node: Node, list: List[String]) : List[String] = {
-    val nlist = node.src match {
-      case Some(src) => src ++ list
-      case None => list
-    }
-    (nlist /: node.children.values) { (acc, n) => flatten(n, acc) }
+  def flatten(node: Node) : List[String] = {
+    val lists = node.children.values.map(flatten)
+    (node.src /: lists)(_++_)
   }
 
-  class Node(val value: Char, var src: Option[List[String]]) extends Serializable {
-    def this(v: Char) = this(v, None)
+  class Node(val value: Char, var src: List[String]) extends Serializable {
+    def this(v: Char) = this(v, List[String]())
     val children = Map[Char, Node]()
     def add(child: Node) = {
       this.children += (child.value -> child)
       child
     }
     def addSrc(s: String) {
-      this.src = src match {
-        case Some(l) => Some(s::l)
-        case None    => Some(List[String](s))
-      }
+      this.src = s::src
     }
     override def toString() = value + ", " + src
   }
