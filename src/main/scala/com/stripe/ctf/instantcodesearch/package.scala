@@ -3,12 +3,15 @@ package com.stripe.ctf
 import java.io._
 import java.nio.file._
 import java.nio.charset._
+import System.{currentTimeMillis => _time}
 
 
 package object instantcodesearch {
   val utf8Decoder = Charset.forName("UTF-8").newDecoder().
     onMalformedInput(CodingErrorAction.REPORT).
     onUnmappableCharacter(CodingErrorAction.REPORT)
+
+  def profile[R](code: => R, t: Long = _time) = (code, _time - t)
 
   def slurp(r : Reader) : String = {
     val sb = new StringBuilder

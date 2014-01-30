@@ -1,5 +1,7 @@
 package com.stripe.ctf.instantcodesearch
 
+import scala.collection.mutable.Map;
+
 class SuffixTree extends Serializable {
 
   var root = new Node('^', None)
@@ -15,10 +17,10 @@ class SuffixTree extends Serializable {
   }
 
   def add(source: String, suffix: String, node: Node) {
-    val childs = node.children.filter(_.value == suffix(0))
+    val childs = node.children.get(suffix(0))
     val child  = childs match {
-      case head::tail => head
-      case _ => node.add(new Node(suffix(0)))
+      case Some(n) => n
+      case None => node.add(new Node(suffix(0)))
     }
     if (1 == suffix.length)
       child.addSrc(source)
@@ -29,14 +31,14 @@ class SuffixTree extends Serializable {
   def find(needle: String) : List[String] = find(needle, root)
 
   def find(needle: String, node: Node) : List[String] = {
-    val childs = node.children.filter(_.value == needle(0))
+    val childs = node.children.get(needle(0))
     childs match {
-      case head::tail =>
+      case Some(n) =>
         if (1 == needle.length)
-          flatten(head)
+          flatten(n)
         else
-          find(needle.substring(1), head)
-      case _ => List[String]()
+          find(needle.substring(1), n)
+      case None => List[String]()
     }
   }
 
@@ -47,14 +49,14 @@ class SuffixTree extends Serializable {
       case Some(src) => src ++ list
       case None => list
     }
-    (nlist /: node.children) { (acc, n) => flatten(n, acc) }
+    (nlist /: node.children.values) { (acc, n) => flatten(n, acc) }
   }
 
   class Node(val value: Char, var src: Option[List[String]]) extends Serializable {
     def this(v: Char) = this(v, None)
-    var children = List[Node]()
+    val children = Map[Char, Node]()
     def add(child: Node) = {
-      this.children = child::children
+      this.children += (child.value -> child)
       child
     }
     def addSrc(s: String) {
