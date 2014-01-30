@@ -1,7 +1,10 @@
 package com.stripe.ctf.instantcodesearch
 
-import com.twitter.util.Future
-import org.jboss.netty.handler.codec.http.HttpResponseStatus
+import scala.util.parsing.json.JSON;
+import java.io.File;
+import com.twitter.util.{Future, Promise}
+import org.jboss.netty.buffer.ChannelBuffers.copiedBuffer
+import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.util.CharsetUtil.UTF_8
 
 class SearchMasterServer(port: Int, id: Int) extends AbstractSearchServer(port, id) {
@@ -55,18 +58,34 @@ class SearchMasterServer(port: Int, id: Int) extends AbstractSearchServer(port, 
 
   // TODO split up the work
   override def index(path: String) = {
-    System.err.println(
-      "[master] Requesting " + NumNodes + " nodes to index path: " + path
-    )
-    val root = new File(path)
+    System.err.println("[master] Requesting " + NumNodes + " nodes to index path: " + path)
 
-    val responses = Future.collect(clients.map {client => client.index(path)})
+    val root   = new File(path)
+    val paths  = root.list().map { child => path + "/" + child }
+    val paired = paths zip (Stream continually clients).flatten
+
+    val responses = Future.collect(paired.map {case (path, client) => client.index(path)})
     responses.map {_ => successResponse()}
   }
 
-  // TODO split up the work
   override def query(q: String) = {
-    val responses = clients.map {client => client.query(q)}
-    responses(0)
+    val responsesF = Future.collect(clients.map {client => client.query(q)})
+    val resultsF   = responsesF.map {responses => responses.foldRight(List[String]()) { (resp, suffix) =>
+        val content = JSON.parseFull(resp.getContent.toString(UTF_8))
+        val list    = content match {
+          case Some(c:Map[_,_]) => c.asInstanceOf[Map[String, List[String]]] getOrElse ("results", List[String]())
+          case _ => List[String]()
+        }
+        list ++ suffix
+    }}
+    resultsF.map { results =>
+      val response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
+      val resultString = results
+        .map { r => "\"" + r + "\"" }
+        .mkString("[", ",\n", "]")
+      val content = "{\"success\": true,\n \"results\": " + resultString + "}"
+      response.setContent(copiedBuffer(content, UTF_8))
+      response
+    }
   }
 }
