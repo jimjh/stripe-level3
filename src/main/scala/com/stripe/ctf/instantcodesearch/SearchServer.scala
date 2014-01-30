@@ -22,6 +22,7 @@ class SearchServer(port : Int, id : Int) extends AbstractSearchServer(port, id) 
       Future.value(errorResponse(HttpResponseStatus.OK, "Not indexed"))
     }
   }
+
   override def index(path: String) = {
     val indexer = new Indexer(path)
 

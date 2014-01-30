@@ -57,11 +57,10 @@ class SearchMasterServer(port: Int, id: Int) extends AbstractSearchServer(port, 
   }
 
   // TODO split up the work
-  override def index(path: String) = {
-    System.err.println("[master] Requesting " + NumNodes + " nodes to index path: " + path)
+  override def index(root: String) = {
+    System.err.println("[master] Requesting " + NumNodes + " nodes to index path: " + root)
 
-    val root   = new File(path)
-    val paths  = root.list().map { child => path + "/" + child }
+    val paths  = new File(root).list().map { child => root + "/" + child }
     val paired = paths zip (Stream continually clients).flatten
 
     val responses = Future.collect(paired.map {case (path, client) => client.index(path)})

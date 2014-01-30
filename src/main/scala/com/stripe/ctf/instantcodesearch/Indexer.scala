@@ -7,7 +7,8 @@ import java.nio.charset._
 import java.nio.file.attribute.BasicFileAttributes
 
 class Indexer(indexPath: String) {
-  val root = FileSystems.getDefault().getPath(indexPath)
+  val root  = FileSystems.getDefault().getPath(indexPath)
+  val basep = root.getParent()
   val idx = new Index(root.toAbsolutePath.toString)
 
   def index() : Indexer = {
@@ -33,7 +34,7 @@ class Indexer(indexPath: String) {
         try {
           val r = new InputStreamReader(new ByteArrayInputStream(bytes), decoder)
           val strContents = slurp(r)
-          idx.addFile(root.relativize(file).toString, strContents)
+          idx.addFile(basep.relativize(file).toString, strContents)
         } catch {
           case e: IOException => {
             return FileVisitResult.CONTINUE
